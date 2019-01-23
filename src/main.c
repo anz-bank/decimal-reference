@@ -49,6 +49,7 @@ _Decimal64 add(_Decimal64 a, _Decimal64 b) { return a + b; }
 _Decimal64 sub(_Decimal64 a, _Decimal64 b) { return a - b; }
 _Decimal64 mul(_Decimal64 a, _Decimal64 b) { return a * b; }
 _Decimal64 div_(_Decimal64 a, _Decimal64 b) { return a / b; }
+_Decimal64 not(_Decimal64 a) { return !a; }
 
 typedef struct Constant_t {
     char * name;
@@ -225,7 +226,7 @@ int main(int argc, char * argv[]) {
             "op = one of:\n"
             "  [±]d…d.d…d[E[±]d…d] (a decimal number)\n"
             "  [±]inf, nan\n"
-            "  +, -, *, /, ^\n"
+            "  +, -, *, /, ^, !\n"
             "  = (print)");
 
         int col = 4;
@@ -285,6 +286,7 @@ int main(int argc, char * argv[]) {
             case 'x': binfun(&bos, stk, mul, "x"); continue;
             case '/': binfun(&bos, stk, div_, "/"); continue;
             case '^': binfun(&bos, stk, powd64, "^"); continue;
+            case '!': unfun(&bos, stk, not, "!"); continue;
             case '=': print(&bos, stk); continue;
             }
         }
