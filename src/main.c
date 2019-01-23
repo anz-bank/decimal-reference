@@ -219,7 +219,7 @@ int main(int argc, char * argv[]) {
             "Decimal64 RPN calculator\n"
             "\n"
             "-  = read op op ... from stdin\n"
-            "op = one of: a decimal64, +, -, *, /, = (print) or...");
+            "op = one of: a decimal64, +, -, *, /, ^, = (print) or...");
 
         int col = 4;
         fprintf(stderr, "\n  constants:\n    ");
