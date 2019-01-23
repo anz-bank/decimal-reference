@@ -227,7 +227,7 @@ int main(int argc, char * argv[]) {
             "  [±]d…d.d…d[E[±]d…d] (a decimal number)\n"
             "  [±]inf, nan\n"
             "  +, -, *, /, ^, !\n"
-            "  = (print)");
+            "  ? (print)");
 
         int col = 4;
         fprintf(stderr, "\n  constants:\n    ");
@@ -287,7 +287,7 @@ int main(int argc, char * argv[]) {
             case '/': binfun(&bos, stk, div_, "/"); continue;
             case '^': binfun(&bos, stk, powd64, "^"); continue;
             case '!': unfun(&bos, stk, not, "!"); continue;
-            case '=': print(&bos, stk); continue;
+            case '?': print(&bos, stk); continue;
             }
         }
 
