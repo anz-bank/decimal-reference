@@ -188,27 +188,39 @@ int isLittleEndian() {
     return u.i == 0x01;
 }
 
-void hexImpl(_Decimal64 * * bos, _Decimal64 * stk, int colons) {
-    if (*bos == stk) fatal("can't print from empty stack");
+int reverseIfLittleEndian(unsigned char *data) {
+    if (isLittleEndian()) {
+        int n = sizeof(_Decimal64);
+        for (int i = 0; i < n/2; i++) {
+            unsigned char tmp = data[i];
+            data[i] = data[n - 1 - i];
+            data[n - 1 - i] = tmp;
+        }
+    }
+}
 
+void printHexData(unsigned char * data, int n, int colons) {
+    for (int i = 0; i < n; i++) {
+        if (colons && i && i % colons == 0) {
+            printf(":");
+        }
+        printf("%02x", data[i]);
+    }
+    printf("\n");
+}
+
+void printHex(_Decimal64 d, int colons) {
     union {
         _Decimal64 d;
         unsigned char data[sizeof(_Decimal64)];
-    } u = {**bos};
-    if (isLittleEndian()) {
-        for (int i = 0; i < sizeof(_Decimal64)/2; i++) {
-            // Swap sides
-            u.data[i] ^= u.data[sizeof(_Decimal64) - 1 - i];
-            u.data[sizeof(_Decimal64) - 1 - i] ^= u.data[i];
-        }
-    }
-    for (int i = 0; i < sizeof(_Decimal64); i++) {
-        if (colons && i && i % 2 == 0) {
-            printf(":");
-        }
-        printf("%02x", u.data[i]);
-    }
-    printf("\n");
+    } u = {d};
+    reverseIfLittleEndian(u.data);
+    printHexData(u.data, sizeof(_Decimal64), colons);
+}
+
+void hexImpl(_Decimal64 * * bos, _Decimal64 * stk, int colons) {
+    if (*bos == stk) fatal("can't print from empty stack");
+    printHex(*(*bos)++, colons);
     fflush(stdout);
 }
 
@@ -217,7 +229,7 @@ void hex(_Decimal64 * * bos, _Decimal64 * stk) {
 }
 
 void hexWithColons(_Decimal64 * * bos, _Decimal64 * stk) {
-    hexImpl(bos, stk, 1);
+    hexImpl(bos, stk, 2);
 }
 
 void pop(_Decimal64 * * bos, _Decimal64 * stk) {
@@ -249,6 +261,44 @@ void printName(char * name, int * col) {
         fprintf(stderr, ", ");
     }
     fprintf(stderr, "%s", name);
+}
+
+int hexValue(char c) {
+    return (
+        '0' <= c && c <= '9' ? c - '0' :
+        'A' <= c && c <= 'F' ? c - 'A' + 0xa :
+        'a' <= c && c <= 'f' ? c - 'a' + 0xa :
+        -1
+    );
+}
+
+_Decimal64 parseHex(char * s) {
+    union {
+        unsigned char data[sizeof(_Decimal64)];
+        _Decimal64 d;
+    } u = {{0}};
+    int digit = 0;
+    int h = 0;
+    for (char * cp = s; *cp; cp++) {
+        if (*cp == ':') {
+            continue;
+        }
+        int a = hexValue(*cp);
+        if (a == -1) {
+            fatal("unable to parse @%s (element %d, '%c', not hex digit or ':')", s, cp - s, *cp);
+        }
+        if (digit % 2 == 1) {
+            u.data[digit / 2] = h |= a;
+        } else {
+            h = a << 4;
+        }
+        digit++;
+    }
+    if (digit < 16) {
+        fatal("unable to parse @%s (not enough digits)", s);
+    }
+    reverseIfLittleEndian(u.data);
+    return u.d;
 }
 
 typedef struct ArgIter_t {
@@ -288,6 +338,8 @@ int main(int argc, char * argv[]) {
             "-  = read op op ... from stdin\n"
             "op = one of:\n"
             "  [±]d…d.d…d[E[±]d…d] (a decimal number)\n"
+            "  @<16-hex digits and :'s> (encoded big-endian decimal64 bits\n"
+            "    - e.g.: @31c0:0000:0000:002a = 42 (:'s optional)\n"
             "  [±]inf, nan\n"
             "  +, -, *, /, ^, !\n"
             "  =, == (same as =), !=, <, <=, >, >=\n"
@@ -361,6 +413,11 @@ int main(int argc, char * argv[]) {
             case '}': binfun(&bos, stk, lt, a); continue;
             case '?': print(&bos, stk); continue;
             }
+        }
+
+        if (*a == '@') {
+            *--bos = parseHex(a + 1);
+            continue;
         }
 
         int found = 0;
