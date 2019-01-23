@@ -208,6 +208,9 @@ int main(int argc, char * argv[]) {
         {"pi", makeConstant("3.141592653589793")},
         {"π", makeConstant("3.141592653589793")},
         {"e", makeConstant("2.718281828459045")},
+        {"inf", 1.0dd / 0.0dd},
+        {"-inf", -1.0dd / 0.0dd},
+        {"nan", 0.0dd / 0.0dd},
     };
 
     if (argc == 1) {
@@ -221,8 +224,9 @@ int main(int argc, char * argv[]) {
             "-  = read op op ... from stdin\n"
             "op = one of:\n"
             "  [±]d…d.d…d[E[±]d…d] (a decimal number)\n"
+            "  [±]inf, nan\n"
             "  +, -, *, /, ^\n"
-            "  = (print)");
+            "  = (print)\n");
 
         int col = 4;
         fprintf(stderr, "\n  constants:\n    ");
