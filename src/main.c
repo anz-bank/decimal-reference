@@ -34,13 +34,13 @@ void unfun(_Decimal64 * * bos, _Decimal64 * stk, _Decimal64 (*f)(_Decimal64), ch
 }
 
 void binfun(_Decimal64 * * bos, _Decimal64 * stk, _Decimal64 (*f)(_Decimal64, _Decimal64), char const * name) {
-    if (*bos == stk) fatal("%s: need at least two args on stack", name);
+    if (*bos > stk - 2) fatal("%s: need at least two args on stack", name);
     ++*bos;
     **bos = f(**bos, (*bos)[-1]);
 }
 
 void ternfun(_Decimal64 * * bos, _Decimal64 * stk, _Decimal64 (*f)(_Decimal64, _Decimal64, _Decimal64), char const * name) {
-    if (*bos == stk) fatal("%s: need at least three args on stack", name);
+    if (*bos > stk - 3) fatal("%s: need at least three args on stack", name);
     *bos += 2;
     **bos = f(**bos, (*bos)[-1], (*bos)[-2]);
 }
