@@ -301,17 +301,17 @@ int main(int argc, char * argv[]) {
     for (char * a; a = next(state); i++) {
         if (strlen(a) == 1) {
             switch (*a) {
-            case '+': binfun(&bos, stk, add, "+"); continue;
-            case '-': binfun(&bos, stk, sub, "-"); continue;
-            case 'x': binfun(&bos, stk, mul, "x"); continue;
-            case '/': binfun(&bos, stk, div_, "/"); continue;
-            case '^': binfun(&bos, stk, powd64, "^"); continue;
-            case '!': unfun(&bos, stk, not, "!"); continue;
-            case '=': binfun(&bos, stk, eq, "="); continue;
-            case '<': binfun(&bos, stk, lt, "<"); continue;
-            case '{': binfun(&bos, stk, lt, "<"); continue;
-            case '>': binfun(&bos, stk, lt, ">"); continue;
-            case '}': binfun(&bos, stk, lt, ">"); continue;
+            case '+': binfun(&bos, stk, add, a); continue;
+            case '-': binfun(&bos, stk, sub, a); continue;
+            case 'x': binfun(&bos, stk, mul, a); continue;
+            case '/': binfun(&bos, stk, div_, a); continue;
+            case '^': binfun(&bos, stk, powd64, a); continue;
+            case '!': unfun(&bos, stk, not, a); continue;
+            case '=': binfun(&bos, stk, eq, a); continue;
+            case '<': binfun(&bos, stk, lt, a); continue;
+            case '{': binfun(&bos, stk, lt, a); continue;
+            case '>': binfun(&bos, stk, lt, a); continue;
+            case '}': binfun(&bos, stk, lt, a); continue;
             case '?': print(&bos, stk); continue;
             }
         }
