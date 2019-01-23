@@ -11,6 +11,8 @@
 #define TERNFUN(fun) {#fun, fun##d64}
 #define ACTION(fun) {#fun, fun}
 
+#define BINOP(op, fun) {#op, fun}
+
 int const stksize = 1 << 20;
 
 void fatal(char * fmt, ...) {
@@ -50,6 +52,13 @@ _Decimal64 sub(_Decimal64 a, _Decimal64 b) { return a - b; }
 _Decimal64 mul(_Decimal64 a, _Decimal64 b) { return a * b; }
 _Decimal64 div_(_Decimal64 a, _Decimal64 b) { return a / b; }
 _Decimal64 not(_Decimal64 a) { return !a; }
+
+_Decimal64 eq(_Decimal64 a, _Decimal64 b) { return a == b; }
+_Decimal64 ne(_Decimal64 a, _Decimal64 b) { return a != b; }
+_Decimal64 lt(_Decimal64 a, _Decimal64 b) { return a < b; }
+_Decimal64 le(_Decimal64 a, _Decimal64 b) { return a <= b; }
+_Decimal64 gt(_Decimal64 a, _Decimal64 b) { return a > b; }
+_Decimal64 ge(_Decimal64 a, _Decimal64 b) { return a >= b; }
 
 typedef struct Constant_t {
     char * name;
@@ -125,6 +134,15 @@ UnFun unfuns[] = {
 };
 
 BinFun binfuns[] = {
+    BINOP(==,eq),
+    BINOP(!=,ne),
+    BINOP(<=,le),
+    BINOP(>=,ge),
+
+    // For easier command-line
+    BINOP({=,le),
+    BINOP(}=,ge),
+
     BINFUN(atan2),
     BINFUN(pow),
     BINFUN(hypot),
@@ -227,6 +245,8 @@ int main(int argc, char * argv[]) {
             "  [±]d…d.d…d[E[±]d…d] (a decimal number)\n"
             "  [±]inf, nan\n"
             "  +, -, *, /, ^, !\n"
+            "  =, == (same as =), !=, <, <=, >, >=\n"
+            "  {, {=, }, }= (same as <, <=, >, >=, but no need to escape on cmdline)\n"
             "  ? (print)");
 
         int col = 4;
@@ -287,6 +307,11 @@ int main(int argc, char * argv[]) {
             case '/': binfun(&bos, stk, div_, "/"); continue;
             case '^': binfun(&bos, stk, powd64, "^"); continue;
             case '!': unfun(&bos, stk, not, "!"); continue;
+            case '=': binfun(&bos, stk, eq, "="); continue;
+            case '<': binfun(&bos, stk, lt, "<"); continue;
+            case '{': binfun(&bos, stk, lt, "<"); continue;
+            case '>': binfun(&bos, stk, lt, ">"); continue;
+            case '}': binfun(&bos, stk, lt, ">"); continue;
             case '?': print(&bos, stk); continue;
             }
         }
