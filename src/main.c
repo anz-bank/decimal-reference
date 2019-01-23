@@ -9,9 +9,11 @@
 #define UNFUN(fun) {#fun, fun##d64}
 #define BINFUN(fun) {#fun, fun##d64}
 #define TERNFUN(fun) {#fun, fun##d64}
-#define ACTION(fun) {#fun, fun}
+#define ACTION(action) {#action, action}
 
 #define BINOP(op, fun) {#op, fun}
+
+#define NAMED_ACTION(name, action) {#name, action}
 
 int const stksize = 1 << 20;
 
@@ -177,6 +179,47 @@ void dup(_Decimal64 * * bos, _Decimal64 * stk) {
     **bos = (*bos)[1];
 }
 
+int isLittleEndian() {
+    union {
+        unsigned char c[sizeof(unsigned long)];
+        unsigned long i;
+    } u = {{'\1'}};
+
+    return u.i == 0x01;
+}
+
+void hexImpl(_Decimal64 * * bos, _Decimal64 * stk, int colons) {
+    if (*bos == stk) fatal("can't print from empty stack");
+
+    union {
+        _Decimal64 d;
+        unsigned char data[sizeof(_Decimal64)];
+    } u = {**bos};
+    if (isLittleEndian()) {
+        for (int i = 0; i < sizeof(_Decimal64)/2; i++) {
+            // Swap sides
+            u.data[i] ^= u.data[sizeof(_Decimal64) - 1 - i];
+            u.data[sizeof(_Decimal64) - 1 - i] ^= u.data[i];
+        }
+    }
+    for (int i = 0; i < sizeof(_Decimal64); i++) {
+        if (colons && i && i % 2 == 0) {
+            printf(":");
+        }
+        printf("%02x", u.data[i]);
+    }
+    printf("\n");
+    fflush(stdout);
+}
+
+void hex(_Decimal64 * * bos, _Decimal64 * stk) {
+    hexImpl(bos, stk, 0);
+}
+
+void hexWithColons(_Decimal64 * * bos, _Decimal64 * stk) {
+    hexImpl(bos, stk, 1);
+}
+
 void pop(_Decimal64 * * bos, _Decimal64 * stk) {
     if (*bos == stk) fatal("can't pop from empty stack");
     ++*bos;
@@ -191,6 +234,8 @@ void print(_Decimal64 * * bos, _Decimal64 * stk) {
 Action actions[] = {
     ACTION(dumpstk),
     ACTION(dup),
+    ACTION(hex),
+    NAMED_ACTION(hex:,hexWithColons),
     ACTION(pop),
 };
 
@@ -247,7 +292,9 @@ int main(int argc, char * argv[]) {
             "  +, -, *, /, ^, !\n"
             "  =, == (same as =), !=, <, <=, >, >=\n"
             "  {, {=, }, }= (same as <, <=, >, >=, but no need to escape on cmdline)\n"
-            "  ? (print)");
+            "  ? (print)\n"
+            "  hex (print encoded big-endian decimal64 bits\n"
+            "  hex: (print encoded big-endian decimal64 bits with colon separators");
 
         int col = 4;
         fprintf(stderr, "\n  constants:\n    ");
