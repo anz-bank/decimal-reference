@@ -6,10 +6,10 @@
 #include "dfp/math.h"
 #include "dfp/fenv.h"
 
-#define UNOP(op) {#op, op##d64}
-#define BINOP(op) {#op, op##d64}
-#define TERNOP(op) {#op, op##d64}
-#define ACTION(op) {#op, op}
+#define UNFUN(fun) {#fun, fun##d64}
+#define BINFUN(fun) {#fun, fun##d64}
+#define TERNFUN(fun) {#fun, fun##d64}
+#define ACTION(fun) {#fun, fun}
 
 int const stksize = 1 << 20;
 
@@ -28,18 +28,18 @@ void constant(_Decimal64 * * bos, _Decimal64 * stk, _Decimal64 c, char const * n
     *--*bos = c;
 }
 
-void unop(_Decimal64 * * bos, _Decimal64 * stk, _Decimal64 (*f)(_Decimal64), char const * name) {
+void unfun(_Decimal64 * * bos, _Decimal64 * stk, _Decimal64 (*f)(_Decimal64), char const * name) {
     if (*bos == stk) fatal("%s: need at least one arg on stack", name);
     **bos = f(**bos);
 }
 
-void binop(_Decimal64 * * bos, _Decimal64 * stk, _Decimal64 (*f)(_Decimal64, _Decimal64), char const * name) {
+void binfun(_Decimal64 * * bos, _Decimal64 * stk, _Decimal64 (*f)(_Decimal64, _Decimal64), char const * name) {
     if (*bos == stk) fatal("%s: need at least two args on stack", name);
     ++*bos;
     **bos = f(**bos, (*bos)[-1]);
 }
 
-void ternop(_Decimal64 * * bos, _Decimal64 * stk, _Decimal64 (*f)(_Decimal64, _Decimal64, _Decimal64), char const * name) {
+void ternfun(_Decimal64 * * bos, _Decimal64 * stk, _Decimal64 (*f)(_Decimal64, _Decimal64, _Decimal64), char const * name) {
     if (*bos == stk) fatal("%s: need at least three args on stack", name);
     *bos += 2;
     **bos = f(**bos, (*bos)[-1], (*bos)[-2]);
@@ -55,20 +55,20 @@ typedef struct Constant_t {
     _Decimal64 c;
 } Constant;
 
-typedef struct UnOp_t {
+typedef struct UnFun_t {
     char * name;
-    _Decimal64 (*op)(_Decimal64);
-} UnOp;
+    _Decimal64 (*fun)(_Decimal64);
+} UnFun;
 
-typedef struct BinOp_t {
+typedef struct BinFun_t {
     char * name;
-    _Decimal64 (*op)(_Decimal64, _Decimal64);
-} BinOp;
+    _Decimal64 (*fun)(_Decimal64, _Decimal64);
+} BinFun;
 
-typedef struct TernOp_t {
+typedef struct TernFun_t {
     char * name;
-    _Decimal64 (*op)(_Decimal64, _Decimal64, _Decimal64);
-} TernOp;
+    _Decimal64 (*fun)(_Decimal64, _Decimal64, _Decimal64);
+} TernFun;
 
 typedef struct Action_t {
     char * name;
@@ -79,68 +79,68 @@ _Decimal64 makeConstant(char const * s) {
     return strtod64(s, NULL);
 }
 
-UnOp unops[] = {
-    UNOP(acos),
-    UNOP(asin),
-    UNOP(atan),
-    UNOP(cos),
-    UNOP(sin),
-    UNOP(tan),
-    UNOP(cosh),
-    UNOP(sinh),
-    UNOP(tanh),
-    UNOP(acosh),
-    UNOP(asinh),
-    UNOP(atanh),
-    UNOP(exp),
-    UNOP(log),
-    UNOP(log10),
-    UNOP(expm1),
-    UNOP(log1p),
-    UNOP(logb),
-    UNOP(exp2),
-    UNOP(log2),
-    UNOP(sqrt),
-    UNOP(cbrt),
-    UNOP(ceil),
-    UNOP(fabs),
-    UNOP(floor),
-    // UNOP(significand),
-    // UNOP(j0),
-    // UNOP(j1),
-    // UNOP(y0),
-    // UNOP(y1),
-    UNOP(erf),
-    UNOP(erfc),
-    UNOP(lgamma),
-    UNOP(tgamma),
-    // UNOP(gamma),
-    UNOP(rint),
-    UNOP(nearbyint),
-    UNOP(round),
-    UNOP(roundeven),
-    UNOP(trunc),
-    UNOP(quantum),
+UnFun unfuns[] = {
+    UNFUN(acos),
+    UNFUN(asin),
+    UNFUN(atan),
+    UNFUN(cos),
+    UNFUN(sin),
+    UNFUN(tan),
+    UNFUN(cosh),
+    UNFUN(sinh),
+    UNFUN(tanh),
+    UNFUN(acosh),
+    UNFUN(asinh),
+    UNFUN(atanh),
+    UNFUN(exp),
+    UNFUN(log),
+    UNFUN(log10),
+    UNFUN(expm1),
+    UNFUN(log1p),
+    UNFUN(logb),
+    UNFUN(exp2),
+    UNFUN(log2),
+    UNFUN(sqrt),
+    UNFUN(cbrt),
+    UNFUN(ceil),
+    UNFUN(fabs),
+    UNFUN(floor),
+    // UNFUN(significand),
+    // UNFUN(j0),
+    // UNFUN(j1),
+    // UNFUN(y0),
+    // UNFUN(y1),
+    UNFUN(erf),
+    UNFUN(erfc),
+    UNFUN(lgamma),
+    UNFUN(tgamma),
+    // UNFUN(gamma),
+    UNFUN(rint),
+    UNFUN(nearbyint),
+    UNFUN(round),
+    UNFUN(roundeven),
+    UNFUN(trunc),
+    UNFUN(quantum),
 };
 
-BinOp binops[] = {
-    BINOP(atan2),
-    BINOP(pow),
-    BINOP(hypot),
-    BINOP(fmod),
-    // BINOP(drem),
-    BINOP(copysign),
-    BINOP(nextafter),
-    BINOP(remainder),
-    BINOP(fdim),
-    BINOP(fmax),
-    BINOP(fmin),
-    // BINOP(scalb),
-    BINOP(quantize),
+BinFun binfuns[] = {
+    BINFUN(atan2),
+    BINFUN(pow),
+    BINFUN(hypot),
+    BINFUN(fmod),
+    // BINFUN(drem),
+    BINFUN(copysign),
+    BINFUN(nextafter),
+    BINFUN(remainder),
+    BINFUN(fdim),
+    BINFUN(fmax),
+    BINFUN(fmin),
+    // BINFUN(scalb),
+    BINFUN(quantize),
 };
 
-TernOp ternops[] = {
-    TERNOP(fma),
+TernFun ternfuns[] = {
+    TERNFUN(fma),
 };
 
 
@@ -226,7 +226,7 @@ int main(int argc, char * argv[]) {
             "  [±]d…d.d…d[E[±]d…d] (a decimal number)\n"
             "  [±]inf, nan\n"
             "  +, -, *, /, ^\n"
-            "  = (print)\n");
+            "  = (print)");
 
         int col = 4;
         fprintf(stderr, "\n  constants:\n    ");
@@ -242,20 +242,20 @@ int main(int argc, char * argv[]) {
 
         col = 4;
         fprintf(stderr, "\n  unary operations:\n    ");
-        for (int i = 0; i < sizeof(unops) / sizeof(*unops); ++i) {
-            printName(unops[i].name, &col);
+        for (int i = 0; i < sizeof(unfuns) / sizeof(*unfuns); ++i) {
+            printName(unfuns[i].name, &col);
         }
 
         col = 4;
         fprintf(stderr, "\n  binary operations:\n    ");
-        for (int i = 0; i < sizeof(binops) / sizeof(*binops); ++i) {
-            printName(binops[i].name, &col);
+        for (int i = 0; i < sizeof(binfuns) / sizeof(*binfuns); ++i) {
+            printName(binfuns[i].name, &col);
         }
 
         col = 4;
         fprintf(stderr, "\n  ternary operations:\n    ");
-        for (int i = 0; i < sizeof(ternops) / sizeof(*ternops); ++i) {
-            printName(ternops[i].name, &col);
+        for (int i = 0; i < sizeof(ternfuns) / sizeof(*ternfuns); ++i) {
+            printName(ternfuns[i].name, &col);
         }
 
         fprintf(stderr, "\n");
@@ -280,11 +280,11 @@ int main(int argc, char * argv[]) {
     for (char * a; a = next(state); i++) {
         if (strlen(a) == 1) {
             switch (*a) {
-            case '+': binop(&bos, stk, add, "+"); continue;
-            case '-': binop(&bos, stk, sub, "-"); continue;
-            case 'x': binop(&bos, stk, mul, "x"); continue;
-            case '/': binop(&bos, stk, div_, "/"); continue;
-            case '^': binop(&bos, stk, powd64, "^"); continue;
+            case '+': binfun(&bos, stk, add, "+"); continue;
+            case '-': binfun(&bos, stk, sub, "-"); continue;
+            case 'x': binfun(&bos, stk, mul, "x"); continue;
+            case '/': binfun(&bos, stk, div_, "/"); continue;
+            case '^': binfun(&bos, stk, powd64, "^"); continue;
             case '=': print(&bos, stk); continue;
             }
         }
@@ -301,30 +301,30 @@ int main(int argc, char * argv[]) {
         }
         if (found) continue;
 
-        for (int i = 0; i < sizeof(unops) / sizeof(*unops); ++i) {
-            UnOp * op = unops + i;
-            if (strcmp(a, op->name) == 0) {
-                unop(&bos, stk, op->op, op->name);
+        for (int i = 0; i < sizeof(unfuns) / sizeof(*unfuns); ++i) {
+            UnFun * fun = unfuns + i;
+            if (strcmp(a, fun->name) == 0) {
+                unfun(&bos, stk, fun->fun, fun->name);
                 found = 1;
                 break;
             }
         }
         if (found) continue;
 
-        for (int i = 0; i < sizeof(binops) / sizeof(*binops); ++i) {
-            BinOp * op = binops + i;
-            if (strcmp(a, op->name) == 0) {
-                binop(&bos, stk, op->op, op->name);
+        for (int i = 0; i < sizeof(binfuns) / sizeof(*binfuns); ++i) {
+            BinFun * fun = binfuns + i;
+            if (strcmp(a, fun->name) == 0) {
+                binfun(&bos, stk, fun->fun, fun->name);
                 found = 1;
                 break;
             }
         }
         if (found) continue;
 
-        for (int i = 0; i < sizeof(ternops) / sizeof(*ternops); ++i) {
-            TernOp * op = ternops + i;
-            if (strcmp(a, op->name) == 0) {
-                ternop(&bos, stk, op->op, op->name);
+        for (int i = 0; i < sizeof(ternfuns) / sizeof(*ternfuns); ++i) {
+            TernFun * fun = ternfuns + i;
+            if (strcmp(a, fun->name) == 0) {
+             ternfun(&bos, stk, fun->fun, fun->name);
                 found = 1;
                 break;
             }
