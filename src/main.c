@@ -219,7 +219,10 @@ int main(int argc, char * argv[]) {
             "Decimal64 RPN calculator\n"
             "\n"
             "-  = read op op ... from stdin\n"
-            "op = one of: a decimal64, +, -, *, /, ^, = (print) or...");
+            "op = one of:\n"
+            "  [±]d…d.d…d[E[±]d…d] (a decimal number)\n"
+            "  +, -, *, /, ^\n"
+            "  = (print)");
 
         int col = 4;
         fprintf(stderr, "\n  constants:\n    ");
@@ -281,6 +284,7 @@ int main(int argc, char * argv[]) {
             case '=': print(&bos, stk); continue;
             }
         }
+
         int found = 0;
 
         for (int i = 0; i < sizeof(constants) / sizeof(*constants); ++i) {
