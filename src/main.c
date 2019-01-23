@@ -338,7 +338,7 @@ int main(int argc, char * argv[]) {
             "-  = read op op ... from stdin\n"
             "op = one of:\n"
             "  [±]d…d.d…d[E[±]d…d] (a decimal number)\n"
-            "  @<16-hex digits and :'s> (encoded big-endian decimal64 bits\n"
+            "  @<16-hex digits and :'s> (encoded big-endian decimal64 bits)\n"
             "    - e.g.: @31c0:0000:0000:002a = 42 (:'s optional)\n"
             "  [±]inf, nan\n"
             "  +, -, *, /, ^, !\n"
