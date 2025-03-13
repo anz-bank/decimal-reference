@@ -1,0 +1,3 @@
+[submodule "libdfp"]
+	path = libdfp
+	url = https://github.com/libdfp/libdfp.git
