@@ -1,7 +1,7 @@
-FROM gcc as builder
+FROM gcc AS builder
 
-RUN git clone https://github.com/libdfp/libdfp.git && \
-    cd libdfp && \
+COPY libdfp libdfp
+RUN cd /libdfp && \
     ./configure --enable-decimal-float=bid && \
     make -j4
 
@@ -10,13 +10,14 @@ COPY src /src
 RUN gcc \
     -D __STDC_WANT_DEC_FP__ \
     -I /libdfp \
+    -I /libdfp/dfp \
     -L /libdfp -l dfp \
     -o dectest \
     main.c
 
 # -----------------------------------------------------------------------------
 
-FROM debian:stretch
+FROM debian
 
 ENV LD_LIBRARY_PATH=/usr/local/lib
 
